@@ -1,0 +1,19 @@
+
+
+edithtml is a Wysiwyg + Source editor and as integrate a minimal image manipulator
+to crop apply filter color grayscale resize ecc...
+
+to build:
+
+install qt4 
+
+mac http://wiki.qtcentre.org/index.php?title=Installing_Qt4_on_Mac_OS_X
+win http://www.trolltech.com/developer/downloads/qt/index
+linux http://www.trolltech.com/developer/downloads/qt/index
+
+cd to current dir.
+qmake && make
+and you find the apps on this dir.
+
+the last 
+svn export you can find on http://ppk.ciz.ch/qt_c++/html_editor/  if server is up..
