@@ -2,7 +2,7 @@
 #
 # Configuration start
 #
-
+###  http://doc.trolltech.com/4.2/deployment-mac.html#qt-plugins  
 # relative path to the directory which contains the created app bundle
 BIN_DIR="bin"
 # name of the binary
