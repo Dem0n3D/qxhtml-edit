@@ -8,14 +8,17 @@ DESTDIR	+= ../
 DEPENDPATH += .
 INCLUDEPATH += .
 
+win32-msvc*:message("Rewrite libs extension! your compiler make all different as other linux,mac,mingw") 
+win32-msvc*:error("exit pleas msvc!") 
+
 MOC_DIR	= build/.moc
 RCC_DIR	= build/.rcc
 OBJECTS_DIR = build/.obj
 UI_DIR	= ui
 
-CONFIG   += qt warn_off release
-######################win32:debug { CONFIG += console }
 
+CONFIG   += qt warn_off release static
+###win32:debug { CONFIG += console }
 QT += xml
 QT += network
 QT += sql
@@ -60,6 +63,28 @@ SOURCES += base_edit.cpp \
 RESOURCES += attach.qrc
 
 
+
+contains(CONFIG, static): {
+       ######### on main.cpp use defined ########
+       DEFINES += _USE_STATIC_BUILDS_
+    
+        exists($$[QT_INSTALL_PLUGINS]/imageformats/qjpeg.a) {
+            QTPLUGIN += qjpeg
+            DEFINES += _USE_qjpeg
+        }
+        exists($$[QT_INSTALL_PLUGINS]/imageformats/libqgif.a) {
+            QTPLUGIN += qgif   
+            DEFINES += _USE_qgif            
+        }
+        exists($$[QT_INSTALL_PLUGINS]/imageformats/libqmng.a) {
+            QTPLUGIN += qmng   
+            DEFINES += _USE_qmng            
+        }
+        exists($$[QT_INSTALL_PLUGINS]/imageformats/libqtiff.a) {
+            QTPLUGIN += qtiff   
+            DEFINES += _USE_qtiff            
+        }
+}
 
 
 TRANSLATIONS += locale/edit_de.ts \

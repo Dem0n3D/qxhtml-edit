@@ -8,7 +8,6 @@
 #include <QtDebug>
 #include <QDebug> 
 #include <QDesktopServices>
-#include <QDebug>
 #include <QString>
 #include <QSqlError>
 #include <QSqlQuery>
@@ -50,7 +49,6 @@
 #include <QTcpSocket>
 #include <QString>
 #include <QTextStream>
-#include <QDebug>
 #include <QMessageBox>
 #include <QAbstractSocket>
 #include <QDateTime>
@@ -63,8 +61,11 @@
 #include <QFile>
 #include <QBuffer>
 
-
-
+#if defined(_USE_STATIC_BUILDS_)
+/* mac have config only release */
+#else
+#include <QDebug>
+#endif
 
 
 
