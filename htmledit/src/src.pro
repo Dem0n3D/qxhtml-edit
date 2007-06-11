@@ -29,20 +29,13 @@ win32:RC_FILE = win.rc
 
 
 macx {
-message('Bundle........... $${BUNDLE_DIR}')
+message('Bundle target go on $${DESTDIR}$${TARGET}.app')
 RC_FILE = zzz.icns
 QMAKE_INFO_PLIST = zzz.plist
-
-qc_universal:contains(QT_CONFIG,x86):contains(QT_CONFIG,ppc) {
-		CONFIG += x86 ppc
-		QMAKE_MAC_SDK=/Developer/SDKs/MacOSX10.4u.sdk
-}
-
-
+CONFIG += x86 ppc
 QMAKE_MAC_SDK=/Developer/SDKs/MacOSX10.4u.sdk
-QMAKE_POST_LINK = cp -R locale/*.qm $${BUNDLE_DIR}/locale
+QMAKE_POST_LINK = cp -R locale_c $${DESTDIR}$${TARGET}.app/Contents/locale ; cp -R locale_m $${DESTDIR}$${TARGET}.app/Contents/autor
 ##### QMAKE_POST_LINK = cd ..;macos/fixlibs.sh
-##### mkdir -p $${BUNDLE_DIR}/locale; 
 }
 
 
