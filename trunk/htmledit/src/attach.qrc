@@ -36,5 +36,6 @@
         <file>img/zoom-out.gif</file>
         <file>img/zoomin.png</file>
         <file>img/zoomout.png</file>
+        <file>locale_m/autor.pdf</file>
     </qresource>
 </RCC>
