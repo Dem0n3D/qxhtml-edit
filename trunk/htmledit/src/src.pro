@@ -3,7 +3,7 @@
 ######################################################################
 
 TEMPLATE = app
-TARGET = edithtml
+TARGET = Edithtml
 DESTDIR	+= ../
 DEPENDPATH += .
 INCLUDEPATH += .
@@ -24,9 +24,29 @@ QT += network
 QT += sql
 
 win32:RC_FILE = win.rc
-macx:RC_FILE = VolumeIcon.icns
-macx:QMAKE_MAC_SDK=/Developer/SDKs/MacOSX10.4u.sdk
-macx:CONFIG+=x86 ppc
+
+
+
+
+macx {
+message('Bundle........... $${BUNDLE_DIR}')
+RC_FILE = zzz.icns
+QMAKE_INFO_PLIST = zzz.plist
+
+qc_universal:contains(QT_CONFIG,x86):contains(QT_CONFIG,ppc) {
+		CONFIG += x86 ppc
+		QMAKE_MAC_SDK=/Developer/SDKs/MacOSX10.4u.sdk
+}
+
+
+QMAKE_MAC_SDK=/Developer/SDKs/MacOSX10.4u.sdk
+QMAKE_POST_LINK = cp -R locale/*.qm $${BUNDLE_DIR}/locale
+##### QMAKE_POST_LINK = cd ..;macos/fixlibs.sh
+##### mkdir -p $${BUNDLE_DIR}/locale; 
+}
+
+
+
 
 
 INCLUDEPATH += ../libhtml
@@ -86,10 +106,12 @@ contains(CONFIG, static): {
         }
 }
 
+## lrelease src.pro
 
 TRANSLATIONS += locale/edit_de.ts \
                 locale/edit_en.ts \
                 locale/edit_fr.ts \
+                locale/edit_tr.ts \
                 locale/edit_it.ts
 
 
