@@ -9,6 +9,11 @@
 #include "main.h"
 #include "edit_html.h"
 #include "base_modul.h"
+#include <QDesktopServices>
+
+#define AUTORPDF \
+               QString( "%1Xhtml_Edit_Autor.pdf" ).arg(WORK_CACHEDIR) 
+               
 
 #if defined(_USE_STATIC_BUILDS_)
   #include <QtPlugin>
@@ -27,6 +32,32 @@
   
 #endif
 
+static inline bool Copy_To(QString inputfile, const QString outfile)
+{
+    bool succ;
+    QString ultimacartellaaperta = outfile.left(outfile.lastIndexOf("/"))+"/";
+    QDir dira(ultimacartellaaperta);
+    dira.mkpath(ultimacartellaaperta);
+    
+    if (inputfile.startsWith(":/")) {
+        QResource actual(inputfile);
+        /////qDebug() << "rvalid->" << actual.isValid() << "|" << actual.absoluteFilePath();
+        QFile fr(actual.absoluteFilePath());
+        succ = fr.copy(outfile);
+        if (!succ) {
+        QMessageBox::warning(0,"Error \"XHTML Editor\" ",QString("Unable to copy \"%1\" ").arg(inputfile)); 
+        }
+        return succ;
+    }
+    
+    QFile Imaged(inputfile); 
+    succ =  Imaged.copy(outfile);
+    if (!succ) {
+    QMessageBox::warning(0,"Error \"XHTML Editor\" ",QString("Unable to copy \"%1\" ").arg(inputfile)); 
+    }
+    return succ;
+    
+}
 
 static inline bool fwriteutf8(QString fullFileName,QString xml)
 {
@@ -51,9 +82,6 @@ static inline bool fwriteutf8(QString fullFileName,QString xml)
         }
         return false;
 }
-
-
-
 
 static inline bool is_file(QString fullFileName)
 {
@@ -85,134 +113,178 @@ static inline QString UserLanguage()
              languagesistem = languser.left(2);
          }
      }
-     ////////////setter.setValue("userlanguage",languagesistem);
-     ///////////qDebug() << "### save to qsetting " << languagesistem;
-    ///////// qDebug() << "### QT grep language " << QLocale::languageToString( QLocale::system().language());
-     /////////qDebug() << "### User setenv " << getenv("LANG"); 
      return languagesistem;
 }
 
 
-int main(int argc, char *argv[]) {
-     QApplication a( argc, argv );
+#define osApplication \
+    (static_cast<OS_application*>(QCoreApplication::instance()))
     
-        QCoreApplication::setOrganizationName(_ORGANIZATION_NAME_);
-        QCoreApplication::setOrganizationDomain(_PROGRAM_NAME_DOMAINE_);
-        QCoreApplication::setApplicationName(_PROGRAM_NAME_);
+class OS_application : public QApplication
+{
+    Q_OBJECT
+//
+public:
+    public:
+ OS_application( int &argc, char **argv )
+  : QApplication(argc, argv)
+{
+        QString localedirfile,openfile;
+        #if defined Q_WS_MAC
+        QStringList path;
+        path.append(QApplication::applicationDirPath());
+        QDir dir(QApplication::applicationDirPath());
+        dir.cdUp();
+        path.append(dir.absolutePath());
+        dir.cd("plugins");
+        path.append(dir.absolutePath());
+        dir.cdUp();
+        path.append(dir.absolutePath());
+        QApplication::setLibraryPaths(path);
+        QDir::setCurrent(dir.absolutePath());   /* here down -> Frameworks */
+    
+        
+       
+    
+        #endif
+        #if defined Q_WS_MAC
+        localedirfile = QString("%1/locale/edit_%2.qm").arg(QDir::currentPath()).arg(UserLanguage()); 
+        #endif
+        #if defined Q_WS_WIN
+        localedirfile = QString("%1/locale/edit_%2.qm").arg(QCoreApplication::applicationDirPath()).arg(UserLanguage());
+        #endif
+        #if defined Q_WS_X11
+        localedirfile = QString("%1/locale/edit_%2.qm").arg(WORK_CACHEDIR).arg(UserLanguage()); 
+        #endif
+        QTranslator translator;
+        translator.load(localedirfile);
+        installTranslator(&translator);
+        mainWin = new QMainWindow();
+        w = new Edit_html();
+        w->set_Cache(IMM_BUILD);
+        QRect screenSize = desktop()->availableGeometry();
+        mainWin->setMinimumSize ( screenSize.width() - 300 , screenSize.height() );
+        /* to enable QT Setting QSetting setup save x11 session language and other  */
+        setOrganizationName(_ORGANIZATION_NAME_);
+        setOrganizationDomain(_PROGRAM_NAME_DOMAINE_);
+        setApplicationName(_PROGRAM_NAME_);
+        mainWin->setWindowTitle(_PROGRAM_TITLE_);
+        QMenu *menu = mainWin->menuBar()->addMenu(QObject::tr("&File"));
+        menu->addAction(QObject::tr("Open File"),w, SLOT(OpenNewDoc()));
+        menu->addSeparator();
+        menu->addAction(QObject::tr("&Quit"),this, SLOT(quit()));
+        
+        QMenu *menu0 = mainWin->menuBar()->addMenu(QObject::tr("&About"));
+        menu0->addAction(QObject::tr("About Programm %1").arg(_PROGRAM_NAME_),this, SLOT(Aboutp()));
+        menu0->addAction(QObject::tr("Autor Home Page"),this, SLOT(Link0()));
+        menu0->addAction(QObject::tr("Check update..."),this, SLOT(Link1()));
+        
+        
+        QStringList files = arguments();
+         if (files.size() > 1) {
+           for (int i = 0; i < files.size(); ++i) {  
+              if (i > 0) {           
+              const QString onef = files.at(i);
+              if (is_file(onef)) {
+                  defaultfile = onef;
+              }
+            }
+           }
+          }
 
-#if defined Q_WS_MAC
-QStringList path;
-path.append(QApplication::applicationDirPath());
-QDir dir(QApplication::applicationDirPath());
-dir.cdUp();
-path.append(dir.absolutePath());
-dir.cd("plugins");
-path.append(dir.absolutePath());
-dir.cdUp();
-path.append(dir.absolutePath());
-QApplication::setLibraryPaths(path);
-QDir::setCurrent(dir.absolutePath());   /* here down -> Frameworks */
-#endif
+        if (!is_file(defaultfile))  {
+        defaultfile = QString("%2/index.html").arg(QDir::homePath());
+        fwriteutf8(defaultfile,"<p>Hello World!</p>");  
+        }
+        OpenFile(defaultfile);
+        mainWin->show();
+        connect(w, SIGNAL(statusMessage(QString)),mainWin->statusBar(), SLOT(showMessage(QString)));
+        mainWin->setCentralWidget(w);
+}
     
-    
-      
-     QString localedirfile,openfile;
-    
-    /*
-    linux and mac copy yourself or make installer!
-    #define WORK_CACHEDIR \
-               QString( "%1/.%2/" ).arg(QDir::homePath(),_PROGRAM_SHORT_NAME) 
-    
-    */
-    
-    
-#if defined Q_WS_MAC
-localedirfile = QString("%1/locale/edit_%2.qm").arg(QDir::currentPath()).arg(UserLanguage()); 
-#endif
-#if defined Q_WS_WIN
-localedirfile = QString("%1/locale/edit_%2.qm").arg(QCoreApplication::applicationDirPath()).arg(UserLanguage());
-#endif
-#if defined Q_WS_X11
-localedirfile = QString("%1/locale/edit_%2.qm").arg(WORK_CACHEDIR).arg(UserLanguage()); 
-#endif
-    
-    
-
-    QTranslator translator;
-    translator.load(localedirfile);
-    a.installTranslator(&translator);
-    
-    //////////qDebug() << "### primo arg  " << argv[1] << " secondo arg " << argv[2];
-    
-    QStringList debi;
-    debi.append(QString("Locale file: %1").arg(localedirfile));
-     foreach (QString path, a.libraryPaths())  {
-     debi.append(QString("libraryPaths file: %1").arg(path));
-     }
-    debi.append(QString("WORK_CACHEDIR file: %1").arg(WORK_CACHEDIR));
-    
-    
-      
-    debi.append(QString("_PROGRAM_TITLE_: %1").arg(_PROGRAM_TITLE_));
-    
-     
-    QMainWindow mainWin;
-    mainWin.setWindowTitle(_PROGRAM_TITLE_);
-    
-    Edit_html w;
-    mainWin.setCentralWidget(&w);
-     
-     
-    QMenu *menu = mainWin.menuBar()->addMenu(QObject::tr("&File"));
-    menu->addAction(QObject::tr("Open File"), &w, SLOT(OpenNewDoc()));
-    menu->addSeparator();
-    menu->addAction(QObject::tr("&Quit"), &a, SLOT(quit()));
-    
-    w.set_Cache(IMM_BUILD);
-    QString im, argument;
-    QString defaultfile = QString("%2/index.xhtml").arg(QDir::homePath());
-    debi.append(QString("defaultfile file: %1").arg(defaultfile));
-    if (!is_file(defaultfile))  {
-    fwriteutf8(defaultfile,"<p>Hello World!</p>");  
-    }
-    
-    argument = argv[1];
-    bool other = is_file(argument);
-    
-    if (other) {
-        QFileInfo fi(argument);
+void OpenFile( const QString file )
+{
+        QFileInfo fi(file);
         QString ext = fi.suffix();
         ext = ext.toLower();
-        if (ext == "xhtml" or ext == "html") {
-         defaultfile = argument;
+        if (ext == "xhtml" || ext == "html" || ext == "xml" || ext == "xcms") {
+        w->SetFileBase(file);
         } else {
-          other = false; 
-          QMessageBox::warning(0,"Error \"XHTML Editor\" ",QString("The file \"%1\" is not xhtml or html").arg(argument));            
+        QMessageBox::warning(0,"Error \"XHTML Editor\" ",QString("The file \"%1\" is not xhtml or html").arg(fi.fileName())); 
+        } 
+}
+protected:
+void OpenDesktop( QUrl loc )
+{
+     bool r = QDesktopServices::openUrl(loc);
+    if (!r) {
+    QMessageBox::warning(0, tr("Error"),tr("Unable to open file or dir  %1").arg(loc.toString()));
+    }
+}
+bool event(QEvent *ev)
+{
+    bool eaten;
+    switch (ev->type()) {
+    case QEvent::FileOpen:
+        /* on or more from drag event to icon mac linux win */
+        defaultfile = static_cast<QFileOpenEvent *>(ev)->file();
+        OpenFile(defaultfile);
+        eaten = true;
+        break;
+    case QEvent::Close: {
+        /* order and save setting */
+        //////quit();
+        eaten = true;
+        break;
+    }
+    default:
+        eaten = QApplication::event(ev);
+        break;
+    }
+    return eaten;
+}
+Edit_html *w;
+QMainWindow *mainWin;
+QString defaultfile;
+public slots:
+void Aboutp()
+{
+       if (!is_file(AUTORPDF)) {
+        Copy_To(QString(":/locale_m/autor.pdf"),AUTORPDF);
+        /* first time setup */
         }
         
-    }
+    OpenDesktop( QUrl(AUTORPDF));
     
+}
+void Link0()
+{
+    OpenDesktop( QUrl("http://www.swisse.net/"));
     
-    if (!other) {
-    ////////////im = QFileDialog::getOpenFileName(0,"Select a xhtml file to edit ","","XHTML (*.xhtml *.html)");
-    } else {
-    defaultfile = argument;   
-    }
+}
+
+void Link1()
+{
+    OpenDesktop( QUrl("http://www.qt-apps.org/usermanager/search.php?username=patrik08&action=contents"));
+    OpenDesktop( QUrl("http://code.google.com/p/qxhtml-edit/"));
     
-    
-    w.SetFileBase(defaultfile);
-	
-    
-    QObject::connect(&w, SIGNAL(statusMessage(QString)),
-                     mainWin.statusBar(), SLOT(showMessage(QString)));
-    ///////fwriteutf8(DEBUGFILE,debi.join("\n"));
-    mainWin.show();
+}
+
+
+
+
+};
+
+
+
+int main(int argc, char *argv[]) {
+     OS_application a( argc, argv );
      a.connect( &a, SIGNAL( lastWindowClosed() ), &a, SLOT( quit() ) );
     return a.exec();
 }
 
 
 
-
+#include "main.moc"
 
 
