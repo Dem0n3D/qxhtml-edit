@@ -5,8 +5,6 @@
 #include <QInputDialog>
 #include <QMenu>
 #include <QString>
-#include <QtDebug>
-#include <QDebug> 
 #include <QDesktopServices>
 #include <QString>
 #include <QSqlError>
@@ -79,8 +77,8 @@ typedef QMap<QString, QString> sqlr;
 #define _PROGRAM_NAME_ "XHTML Editor PPK-Screendesign/Webprogramm di Peter Hohl"
 #define _PROGRAM_NAME_DOMAINE_ "ciz.ch"
 #define _ORGANIZATION_NAME_ "PPK-Screendesign/Webprogramm"
-#define _PROGRAM_VERSION_ "version 3.6 / svn 812"
-#define _PROGRAM_OWNER_ "version 3.6"
+#define _PROGRAM_VERSION_ "version 3.8 / 2007-g6"
+#define _PROGRAM_OWNER_ "version 3.8"
 #define _PROGRAM_TITLE_  _PROGRAM_NAME_" - "_PROGRAM_VERSION_
 #define Q_WORKS_PEND "open"
 #define _PROGRAM_SHORT_NAME "qt_xhtmledit"
