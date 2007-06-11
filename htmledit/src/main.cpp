@@ -10,6 +10,23 @@
 #include "edit_html.h"
 #include "base_modul.h"
 
+#if defined(_USE_STATIC_BUILDS_)
+  #include <QtPlugin>
+  #if defined(_USE_qjpeg)
+  Q_IMPORT_PLUGIN(qjpeg)
+  #endif
+  #if defined(_USE_qgif)
+  Q_IMPORT_PLUGIN(qgif)
+  #endif
+  #if defined(_USE_qmng)
+  Q_IMPORT_PLUGIN(qmng)
+  #endif
+  #if defined(_USE_qtiff)
+  Q_IMPORT_PLUGIN(qtiff)
+  #endif
+  
+#endif
+
 
 static inline bool fwriteutf8(QString fullFileName,QString xml)
 {
@@ -125,7 +142,7 @@ localedirfile = QString("%1/locale/edit_%2.qm").arg(WORK_CACHEDIR).arg(UserLangu
     translator.load(localedirfile);
     a.installTranslator(&translator);
     
-    qDebug() << "### primo arg  " << argv[1] << " secondo arg " << argv[2];
+    //////////qDebug() << "### primo arg  " << argv[1] << " secondo arg " << argv[2];
     
     QStringList debi;
     debi.append(QString("Locale file: %1").arg(localedirfile));
